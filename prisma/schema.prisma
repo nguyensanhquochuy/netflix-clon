@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  image String?
+  email String? @unique 
+  emailVerified DateTime?
+  hashedPassword String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  favoriteIds String[] @db.ObjectId
+  sessions Session[]
+  accounts Account[]
+  
+}
+
+model Account{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  type String
+  provider String
+  providerAccountId String
+  refresh_token String? @db.String
+  access_token String? @db.String
+  expires_at Int?
+  token_type String?
+  scope String?
+  id_token String? @db.String
+  session_state String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String @unique
+  userId String @db.ObjectId
+  expires DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token String @unique
+  expires DateTime
+
+  @@unique([identifier, token])
+}
+
+model Movie {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  description String
+  videoUrl String
+  thumbnailUrl String
+  genre String
+  duration String
+}
+
+// model Genre{
+//     id String @id @default(auto()) @map("_id") @db.ObjectId
+//     name String
+// }
+//Trong model User, chúng ta khai báo các field như sau:
+// id: đây là field chính được sử dụng để định danh mỗi user, đánh dấu với decorator @id. Chúng ta cũng sử dụng decorator @default(auto()) để tự động tạo giá trị cho field này. Thêm vào đó, để đảm bảo tính toàn vẹn của data khi liên kết với MongoDB, chúng ta sử dụng decorator @map("_id") để chỉ định rằng field id sẽ được map với field _id trong MongoDB. 
+// Cuối cùng, chúng ta sử dụng decorator @db.ObjectId để chỉ định kiểu dữ liệu của field này sẽ là ObjectId trong MongoDB.
+// name: đây là field để lưu tên của user, có kiểu dữ liệu là String.
+// image: đây là field để lưu đường dẫn đến hình ảnh của user, có kiểu dữ liệu là String và có thể bỏ qua (không bắt buộc).
+// email: đây là field để lưu địa chỉ email của user, có kiểu dữ liệu là String và được bắt buộc (@unique).
+// emailVerified: đây là field để lưu thời điểm xác thực email của user, có kiểu dữ liệu là DateTime và không bắt buộc.
+// hashedPassword: đây là field để lưu mật khẩu của user (đã được mã hóa), có kiểu dữ liệu là String và không bắt buộc.
+//  createdAt: đây là field để lưu thời điểm tạo user, có kiểu dữ liệu là DateTime và được tự động tạo giá trị bằng decorator @default(now()).
+// updatedAt: đây là field để lưu thời điểm cập nhật thông tin user, có kiểu dữ liệu là DateTime và được tự động cập nhật giá trị bằng decorator @updatedAt.
+// favoriteIds: đây là field để lưu danh sách các id phim mà user đã thích, có kiểu dữ liệu là String[] và được bắt buộc kiểu dữ liệu ObjectId trong MongoDB (@db.ObjectId).
+// sessions: đây là field để lưu danh sách các session mà user đã tạo, có kiểu dữ liệu là Session[] và được định nghĩa bởi model Session.
+// accounts: đây là field để lưu danh sách các tài khoản mà user đã liên kết, có kiểu dữ liệu là Account[] và được định nghĩ
+
+
+// Model Account
+ // id: field kiểu String, được đánh dấu là primary key bằng directive @id. Nó cũng được đặt giá trị mặc định với directive @default(auto()), nghĩa là giá trị của field này sẽ tự động được tạo ra khi một instance mới của Account được tạo.
+ // userId: field kiểu String, được sử dụng để lưu trữ id của người dùng liên kết với tài khoản này. Trong cơ sở dữ liệu MongoDB, nó được đại diện bởi một ObjectId.
+ // type: field kiểu String, được sử dụng để lưu trữ loại tài khoản này. Ví dụ như "Google", "Facebook", "Apple", vv.
+ // provider: field kiểu String, được sử dụng để lưu trữ nhà cung cấp cho tài khoản này.
+ // providerAcountId: field kiểu String, được sử dụng để lưu trữ id của tài khoản từ nhà cung cấp.
+ // refresh_token: field kiểu String, là optional với directive ?. Nó được sử dụng để lưu trữ mã thông báo làm mới (refresh token) cho tài khoản này.
+ // access_token: field kiểu String, là optional với directive ?. Nó được sử dụng để lưu trữ mã thông báo truy cập (access token) cho tài khoản này.
+ // expires_at: field kiểu Int, là optional với directive ?. Nó được sử dụng để lưu trữ thời gian hết hạn của access token cho tài khoản này.
+ // token_type: field kiểu String, là optional với directive ?. Nó được sử dụng để lưu trữ loại token cho tài khoản này.
+ // scope: field kiểu String, là optional với directive ?. Nó được sử dụng để lưu trữ phạm vi cho tài khoản này.
+ // id_token: field kiểu String, là optional với directive ?. Nó được sử dụng để lưu trữ ID token cho tài khoản này
+ //Trong model Account, session_state là một trường (field) có kiểu dữ liệu là String và có dấu ? ở cuối, cho biết trường này có thể có giá trị null hoặc không có giá trị (optional).
+//Dòng tiếp theo khai báo mối quan hệ giữa model Account và model User. Trong trường hợp này, mối quan hệ là một quan hệ một-nhiều, với trường userId trong model Account tham chiếu đến trường id trong model User. 
+//Thêm vào đó, onDelete: Cascade được sử dụng để đảm bảo rằng tất cả các bản ghi trong bảng Account liên quan đến bản ghi trong bảng User sẽ bị xóa khi bản ghi trong bảng User bị xóa.
+
+// Cuối cùng, @@unique([provider, providerAcountId]) được sử dụng để tạo ra một ràng buộc duy nhất cho các cặp giá trị của các trường provider và providerAcountId, điều này đảm bảo rằng không có hai bản ghi nào trong bảng Account có cùng giá trị cho cặp trường này.
